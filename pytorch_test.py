@@ -299,6 +299,6 @@ def loss_batch(model, loss_func, xb, yb, opt=None):
 
 train_dl, valid_dl = get_data(train_ds, valid_ds, bs);
 model, opt = get_model();
-fit(100, model, loss_func, opt, train_dl, valid_dl);
+fit(10, model, loss_func, opt, train_dl, valid_dl);
 
     
