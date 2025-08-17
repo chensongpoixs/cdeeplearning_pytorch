@@ -63,6 +63,7 @@ Backup_*
 
 # Python bytecode and cache files
 __pycache__/
-*.py[cod]
-/data
+*.py[cod] 
 /.ipynb_checkpoints
+ 
+/old_data

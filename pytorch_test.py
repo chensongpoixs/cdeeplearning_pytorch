@@ -9,69 +9,83 @@ import torch;
 
 
 
-#from pathlib  import Path;
-#
-#import requests;
-#
-#DATA_PATH = Path('data');
-#
-## 下载字体数据集目录的位置
-#PATH = DATA_PATH / 'mnist';
-#
-#PATH.mkdir(parents=True, exist_ok=True);
-#
-#URL = 'https://yann.lecun.com/exdb/mnist/';
-#
-#FILENAME = 'mnist.pkl.gz';
-#
-#
-#if not (PATH / FILENAME).exists():
-#    content = requests.get(URL + FILENAME).content;
-#    (PATH / FILENAME).open('wb').write(content);
-#    
-#
-#
-#
-#import pickle;
-#import gzip;
+from pathlib  import Path;
+
+import requests;
+
+DATA_PATH = Path('data');
+
+# 下载字体数据集目录的位置
+PATH = DATA_PATH / 'mnist';
+
+PATH.mkdir(parents=True, exist_ok=True);
+
+URL = 'https://resources.oreilly.com/live-training/inside-unsupervised-learning/-/raw/master/data/mnist_data/';
+
+FILENAME = 'mnist.pkl.gz';
+
+
+if not (PATH / FILENAME).exists():
+   content = requests.get(URL + FILENAME).content;
+   (PATH / FILENAME).open('wb').write(content);
+   
+
+
+
+import pickle;
+import gzip;
 
 
 from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
+from matplotlib import pyplot;
 #import torch.utils.data as tud;
 from torch.utils.data import TensorDataset;
 from torch.utils.data import DataLoader;
 
 
 USE_CUDA = torch.cuda.is_available();
+import pickle
+import gzip
+# 打开下载的pkl.gz文件
+with gzip.open((PATH / FILENAME).as_posix(), 'rb') as f:
+    #mnist_data = pickle.load(f, encoding='latin1');
+    ((x_train, y_train), (x_valid, y_valid), _) = pickle.load(f, encoding='latin-1');
+# mnist_data现在是一个包含两个元素的元组
+# 第一个元素是训练数据集，第二个元素是测试数据集
+#train_data, test_data = mnist_data
+# 训练数据集包含70000个样本和784个特征
+# 测试数据集包含10000个样本和784个特征
 
+pyplot.imshow(x_train[0].reshape(28, 28), cmap='gray')
+print(x_train.shape);
 # 下载MNIST数据集
-transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
-trainset = datasets.MNIST('data/MNIST_data/', download=True, train=True, transform=transform)
-testset = datasets.MNIST('data/MNIST_data/', download=True, train=False, transform=transform)
+# transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+# trainset = datasets.MNIST('data/MNIST_data/', download=True, train=True, transform=transform)
+# testset = datasets.MNIST('data/MNIST_data/', download=True, train=False, transform=transform)
 
-# 可视化数据集图像
-n = 10  # 展示10张图像
-plt.figure(figsize=(10, 5))
-for i in range(n):
-    images, labels = trainset[i]
+# # 可视化数据集图像
+# n = 10  # 展示10张图像
+# plt.figure(figsize=(10, 5))
+# for i in range(n):
+#     images, labels = trainset[i]
    
-    #((x_train, y_train), (x_valid, y_valid), _) = trainset[i];
-   # print(trainset[i][:10]);
-   # print('===================image=================================\n');
-   # print(images);
-   # print('===================labels=================================\n');
-   # print(labels);
-   # print('====================================================\n');
-    plt.subplot(2, 5, i+1)
-    plt.imshow(images[0].view(28, 28), cmap='gray')
-    plt.title(f'Label: {labels}')
-plt.show()
+#     #((x_train, y_train), (x_valid, y_valid), _) = trainset[i];
+#    # print(trainset[i][:10]);
+#    # print('===================image=================================\n');
+#    # print(images);
+#    # print('===================labels=================================\n');
+#    # print(labels);
+#    # print('====================================================\n');
+#     plt.subplot(2, 5, i+1)
+#     plt.imshow(images[0].view(28, 28), cmap='gray')
+#     plt.title(f'Label: {labels}')
+# plt.show()
  
-x_train, _ = trainset[0];
-y_train, _ = trainset[1];
-x_valid, _ = trainset[2];
-y_valid, _ = trainset[3];
+# x_train, _ = trainset[0];
+# y_train, _ = trainset[1];
+# x_valid, _ = trainset[2];
+# y_valid, _ = trainset[3];
 
 
 
@@ -170,9 +184,6 @@ for name, parameter in net.named_parameters():
     print(name, parameter, parameter.size());
 
  
-
-#  2. 使用TensorDataset 和 DataLoader来简化
-
 #print(trainset);
 #((x_train, y_train), (x_valid, y_valid), _) = trainset;
 
@@ -184,6 +195,10 @@ print(y_train[:10]);
 
 
 print(bs);
+
+
+#  2. 使用TensorDataset 和 DataLoader来简化
+
 
 
 
@@ -213,3 +228,77 @@ def get_data(train_ds, valid_ds, bs):
 
 
 
+import numpy as np;
+import torch.nn.functional  as F;
+
+loss_func = F.cross_entropy;
+
+############## TRAN  ##########################
+def fit(setps, model, loss_func, opt, train_dl, valid_dl):
+    for step in range(setps):
+        #  训练模式 需要每次更新权重参数weight的
+        model.train();
+        for xb, yb in train_dl:
+            loss_batch(model, loss_func, xb, yb, opt);
+        # 验证模式  不更新权重参数
+        model.eval();
+        with torch.no_grad():
+            losses, nums = zip(
+                *[loss_batch(model, loss_func, xb, yb) for xb, yb in valid_dl]
+            );
+        val_loss = np.sum(np.multiply(losses, nums)) / np.sum(nums);
+        print('当前step: ' + str(step), '验证集损失:' + str(val_loss));
+        
+        
+        
+
+
+
+
+# test
+
+a = [1, 2, 3];
+b = [4, 5, 6];
+zipped = zip(a, b);
+
+print(list(zipped));
+
+a2, b2 = zip(*zip(a, b));
+print(a2);
+print(b2);
+
+
+
+
+
+from torch import optim;
+
+def get_model():
+    model = Mnist_NN();
+    return model, optim.SGD(model.parameters(), lr=0.001); # Adam
+    
+    
+    
+  
+
+
+
+
+def loss_batch(model, loss_func, xb, yb, opt=None):
+    loss = loss_func(model(xb), yb);
+
+    if opt is not None:
+        loss.backward();
+        opt.step();
+        opt.zero_grad();
+        
+    return loss.item(), len(xb);
+
+
+
+
+train_dl, valid_dl = get_data(train_ds, valid_ds, bs);
+model, opt = get_model();
+fit(100, model, loss_func, opt, train_dl, valid_dl);
+
+    
